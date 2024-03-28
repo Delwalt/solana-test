@@ -54,7 +54,5 @@
     "vitest": "^0.33.0"
   },
   "lint-staged": {
-    "*.{ts,tsx}": "eslint --cache --fix --report-unused-disable-directives",
-    "*.{ts,tsx,js,cjs,css,md,json,scss,html}": "prettier --write"
   }
 }
