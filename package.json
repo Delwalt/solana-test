@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "prepare": "husky install",
     "lint": "eslint src --ext ts,tsx,js --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write --no-error-on-unmatched-pattern src/**/*.{ts,tsx,js,cjs,css,md,json,scss,html} --config ./.prettierrc.json",
     "lint:format": "npm run lint && npm run format",
@@ -53,6 +52,5 @@
     "vite": "^4.4.0",
     "vitest": "^0.33.0"
   },
-  "lint-staged": {
-  }
+  "lint-staged": {}
 }
