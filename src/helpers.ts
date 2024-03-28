@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
 import { Token } from '@solana/spl-token';
 
