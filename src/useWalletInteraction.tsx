@@ -84,6 +84,16 @@ export const useWalletInteraction = () => {
       return;
     }
 
+    const token = app.tokens.find(token => token.mintAddress === mintAddressString);
+
+    if (token == null) {
+      alert('Something went wrong!');
+      console.log('token meta info not found');
+      return;
+    }
+
+    const amountInSmallestUnit = amount * Math.pow(10, token.decimals);
+
     const recipientPublicKey = new PublicKey(recipientPublicKeyString);
 
     // Check if the recipient's/sender associated token account exists before transferring
@@ -100,11 +110,12 @@ export const useWalletInteraction = () => {
       return;
     }
 
+    console.log({ amountInSmallestUnit });
     const transferInstruction = createTransferInstruction(
       senderTokenAccount.address,
       recipientTokenAccount.address,
       publicKey,
-      amount,
+      amountInSmallestUnit,
       [],
       TOKEN_PROGRAM_ID,
     );

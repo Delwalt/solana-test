@@ -4,6 +4,7 @@ interface IToken {
   name: string;
   balance: number;
   mintAddress: string;
+  decimals: number;
 }
 
 interface ITokenListItem {

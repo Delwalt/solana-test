@@ -16,9 +16,13 @@ export const getTokenMetadata = async (mintAddress: string) => {
   const tokenMetadata = tokens.find(token => token.address === mintAddress);
 
   if (tokenMetadata != null) {
-    return { name: tokenMetadata.name, symbol: tokenMetadata.symbol };
+    return {
+      name: tokenMetadata.name,
+      symbol: tokenMetadata.symbol,
+      decimals: tokenMetadata.decimals,
+    };
   } else {
-    return { name: 'Unknown', symbol: 'Unknown' };
+    return { name: 'Unknown', symbol: 'Unknown', decimals: 0 };
   }
 };
 
