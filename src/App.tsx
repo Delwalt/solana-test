@@ -30,6 +30,8 @@ const App = () => {
   // see - https://solana.stackexchange.com/questions/212/uncaught-referenceerror-buffer-is-not-defined-using-phantom-wallet-solana-and
   useEffect(() => {
     window.Buffer = buffer.Buffer;
+    //  eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    setCluster((localStorage.getItem('cluster') as Cluster) || WalletAdapterNetwork.Devnet);
   }, []);
 
   const [cluster, setCluster] = useState<Cluster>(WalletAdapterNetwork.Devnet);
@@ -55,12 +57,12 @@ const App = () => {
           className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 float-right mr-4'
           value={cluster}
           onChange={event => {
+            localStorage.setItem('cluster', event.target.value);
             setCluster(event.target.value as any);
           }}
         >
           <option value={WalletAdapterNetwork.Testnet}>Mainnet Beta</option>
           <option value={WalletAdapterNetwork.Devnet}>Devnet</option>
-          <option value={WalletAdapterNetwork.Testnet}>Testnet</option>
         </select>
 
         <div className='bg-white mt-20'>
