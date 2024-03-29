@@ -1,12 +1,13 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
+import nodePolyfills from 'vite-plugin-node-stdlib-browser';
 
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), nodePolyfills()],
   test: {
     globals: true,
     environment: 'jsdom',
@@ -22,7 +23,6 @@ export default defineConfig({
       utils: path.resolve(__dirname, './src/utils'),
       types: path.resolve(__dirname, './src/types'),
       public: path.resolve(__dirname, './public'),
-      crypto: 'crypto-browserify', // configuring Vite to shim the crypto module. without this the build will throw an error
     },
   },
 });
