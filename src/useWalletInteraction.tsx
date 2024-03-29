@@ -84,9 +84,7 @@ export const useWalletInteraction = () => {
         signature,
       });
 
-      const actualFee = confirmedTx?.meta?.fee;
       console.error('transaction confirmed', confirmedTx);
-      console.log(`Actual Transaction Fee: ${actualFee} lamports`);
       alert('Success!');
     } catch (error) {
       alert(error);
