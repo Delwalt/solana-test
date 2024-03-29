@@ -1,135 +1,66 @@
-// @ts-nocheck
-import { useEffect, useState } from 'react';
-import { Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
+import { useState, createContext } from 'react';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
-import { getSPLTokenBalance, USDC_MINT_ADDRESS_TEST, getAllTokenBalances } from './helpers';
+import { WalletWrapper } from './WalletWrapper';
+import { WalletUi } from './WalletUi';
+import { TransactionForm } from './TransactionForm';
+import { Header } from './Header';
 
-function App() {
-  // State to store the balance
-  const [tokens, setTokens] = useState([]);
-  const [balance, setBalance] = useState<number | '--'>('--');
-  const [usdc, setUsdc] = useState<number | '--'>('--');
-  const [chainEnv, setChainEnv] = useState<'mainnet-beta' | 'devnet'>('devnet');
-  const [publicKey, setPublicKey] = useState('GgTY3WobvjHzmiWBg454o9jorEhykwd5AxpAX37fba2Q');
-  let connection;
+interface AppCtx {
+  sol: number;
+  tokens: IToken[];
+  cluster: Cluster;
+  setCluster: (val: Cluster) => void;
+  setTokens: (val: IToken[]) => void;
+  setSol: (val: number) => void;
+}
 
-  const AIRDROP_AMOUNT = 2 * 1000000000;
+export const AppContext = createContext<AppCtx>({
+  sol: 0,
+  tokens: [],
+  cluster: WalletAdapterNetwork.Devnet,
+  setCluster: () => {},
+  setTokens: () => {},
+  setSol: () => {},
+});
 
-  useEffect(() => {
-    connection = new Connection(clusterApiUrl(chainEnv), 'confirmed');
-  }, [chainEnv, publicKey]);
-
-  const getSolBalance = async () => {
-    try {
-      // Fetch the balance
-      const balance = await connection?.getBalance(new PublicKey(publicKey));
-
-      // Convert lamports to SOL (1 SOL = 1,000,000,000 lamports)
-      return balance / 1000000000;
-    } catch (error) {
-      alert(error);
-      console.error(error);
-    }
-  };
-
-  const getBalance = async () => {
-    console.log('hello');
-    const usdc = await getSPLTokenBalance(connection, publicKey, USDC_MINT_ADDRESS_TEST);
-    const sol = await getSolBalance();
-    const allTokens = await getAllTokenBalances(connection, publicKey);
-    setTokens(allTokens);
-    console.log({ allTokens });
-    if (sol !== undefined || sol !== null) setBalance(sol);
-    setUsdc(usdc);
-  };
-
-  const airdropSol = async () => {
-    try {
-      console.log(`Requesting airdrop for ${publicKey}`);
-      // 1 - Request Airdrop
-      const signature = await connection?.requestAirdrop(new PublicKey(publicKey), AIRDROP_AMOUNT);
-      // 2 - Fetch the latest blockhash
-      const { blockhash, lastValidBlockHeight } = await connection?.getLatestBlockhash();
-      // 3 - Confirm transaction success
-      await connection?.confirmTransaction(
-        {
-          blockhash,
-          lastValidBlockHeight,
-          signature,
-        },
-        'finalized',
-      );
-      // 4 - Log results
-      console.log(`Tx Complete: https://explorer.solana.com/tx/${signature}?cluster=devnet`);
-    } catch (error) {
-      alert(error);
-    }
-  };
-
-  console.log({ tokens });
+const App = () => {
+  const [cluster, setCluster] = useState<Cluster>(WalletAdapterNetwork.Devnet);
+  const [tokens, setTokens] = useState<IToken[] | []>([]);
+  const [sol, setSol] = useState<number>(0);
 
   return (
-    <div style={{ display: 'flex' }}>
-      <div style={{ padding: 20, width: 500 }}>
-        <p>
-          <b>Address</b>
-        </p>
-        <select
-          style={{ width: '100%', height: 30, fontSize: 15, marginBottom: 5 }}
-          value={chainEnv}
-          onChange={event => {
-            setChainEnv(event.target.value as any);
-          }}
-        >
-          <option value='mainnet-beta'>Mainnet Beta</option>
-          <option value='devnet'>Devnet</option>
-        </select>
-        <input
-          value={publicKey}
-          style={{ width: '100%', height: 30, fontSize: 15 }}
-          onChange={e => setPublicKey(e.target.value)}
-        />
-        <br />
-        <br />
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-          <button onClick={getBalance}>Check Balance</button> <br />
-          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-          <button onClick={airdropSol}>Airdrop 1 SOL</button>
+    <AppContext.Provider
+      value={{
+        sol,
+        setSol,
+        tokens,
+        setTokens,
+        cluster,
+        setCluster,
+      }}
+    >
+      <WalletWrapper cluster={cluster}>
+        <Header />
+        <div className='bg-white mt-20'>
+          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
+            <div className='mx-auto mt-16 max-w-2xl rounded-3xl ring-1 ring-gray-200 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none'>
+              <div className='p-8 sm:p-10 lg:flex-auto'>
+                <TransactionForm />
+              </div>
+              <div className='-mt-2 p-2 lg:mt-0 lg:w-full lg:max-w-md lg:flex-shrink-0'>
+                <div className='rounded-2xl bg-gray-50 py-10 text-center ring-1 ring-inset ring-gray-900/5 lg:flex lg:flex-col lg:justify-center lg:py-16 relative'>
+                  <div className='mx-auto max-w-xs px-8'>
+                    <WalletUi />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          width: 600,
-          margin: '0 auto',
-          textAlign: 'center',
-        }}
-      >
-        <h1>Solana Wallet Balance</h1>
-        <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-          <p style={{ textAlign: 'center', fontSize: 45, margin: '4px 0' }}>
-            <h3 style={{ margin: '4px 0' }}>{balance}</h3>
-            <small>SOL</small>
-          </p>
-        </div>
-
-        <p>
-          <b>Other SPL tokens</b>
-        </p>
-        <table>
-          {tokens?.map(token => (
-            <tr key={token.symbol}>
-              <td style={{ border: '1px solid #ccc' }}>{`${token.name} (${token.symbol})`}</td>{' '}
-              <td style={{ border: '1px solid #ccc' }}>{token.balance}</td>
-            </tr>
-          ))}
-        </table>
-      </div>
-    </div>
+      </WalletWrapper>
+    </AppContext.Provider>
   );
-}
+};
 
 export default App;
