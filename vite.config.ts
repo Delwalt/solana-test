@@ -22,6 +22,7 @@ export default defineConfig({
       utils: path.resolve(__dirname, './src/utils'),
       types: path.resolve(__dirname, './src/types'),
       public: path.resolve(__dirname, './public'),
+      crypto: 'crypto-browserify', // configuring Vite to shim the crypto module. without this the build will throw an error
     },
   },
 });
