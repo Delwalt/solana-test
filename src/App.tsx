@@ -61,7 +61,7 @@ const App = () => {
             setCluster(event.target.value as any);
           }}
         >
-          <option value={WalletAdapterNetwork.Testnet}>Mainnet Beta</option>
+          <option value={WalletAdapterNetwork.Mainnet}>Mainnet Beta</option>
           <option value={WalletAdapterNetwork.Devnet}>Devnet</option>
         </select>
 
