@@ -49,6 +49,19 @@ const App = () => {
     >
       <WalletWrapper cluster={cluster}>
         <Header />
+
+        <select
+          className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 w-32 float-right mr-4'
+          value={cluster}
+          onChange={event => {
+            setCluster(event.target.value as any);
+          }}
+        >
+          <option value={WalletAdapterNetwork.Testnet}>Mainnet Beta</option>
+          <option value={WalletAdapterNetwork.Devnet}>Devnet</option>
+          <option value={WalletAdapterNetwork.Testnet}>Testnet</option>
+        </select>
+
         <div className='bg-white mt-20'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='mx-auto mt-16 max-w-2xl rounded-3xl ring-1 ring-gray-200 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none'>
