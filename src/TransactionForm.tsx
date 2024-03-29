@@ -1,17 +1,25 @@
 import { useWalletInteraction } from './useWalletInteraction';
 import { Loader } from './Loader';
+import { TokenSelectDropdown } from './TokenSelectDropdown';
 
 export const TransactionForm = () => {
-  const { sendSol, isLoading } = useWalletInteraction();
+  const { sendSol, isLoading, transferSPLToken } = useWalletInteraction();
   const handleTransaction = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const elements = new FormData(event.currentTarget);
     const rawAmount = elements.get('amount') as string;
-
+    const tokenMintAddress = elements.get('token') as string;
     const amount = rawAmount !== null ? Number(rawAmount) : 0;
-    console.log({ rawAmount, amount });
+    console.log({ rawAmount, amount, tokenMintAddress });
     const address = elements.get('address') as string;
-    await sendSol(address, amount);
+
+    if (tokenMintAddress === null) {
+      alert('Select a token');
+    } else if (tokenMintAddress === 'sol') {
+      await sendSol(address, amount);
+    } else {
+      await transferSPLToken(address, tokenMintAddress, amount);
+    }
   };
 
   console.log('Asdf', { isLoading });
@@ -22,6 +30,7 @@ export const TransactionForm = () => {
       <h3 className='text-2xl font-bold tracking-tight text-gray-900'>Transfer Money</h3>
       {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
       <form className='space-y-6 mt-10' onSubmit={handleTransaction}>
+        <TokenSelectDropdown />
         <div>
           <div className='mt-2'>
             <input

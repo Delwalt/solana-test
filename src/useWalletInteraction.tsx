@@ -1,5 +1,11 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import {
+  TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddress,
+  createTransferInstruction,
+} from '@solana/spl-token';
+
+import {
   Connection,
   clusterApiUrl,
   PublicKey,
@@ -14,8 +20,6 @@ import { getTokenMetadata } from './helpers';
 
 export const useWalletInteraction = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [solBalance, setSolBalance] = useState<number | null>(null);
-  const [tokens, setTokens] = useState<IToken[] | []>([]);
   const [connection, setConnection] = useState<Connection | null>(null);
   const { publicKey, sendTransaction } = useWallet();
   const app = useContext(AppContext);
@@ -26,11 +30,26 @@ export const useWalletInteraction = () => {
     setConnection(connection);
   }, [app.cluster]);
 
+  // Verifying the Account Exists on the Blockchain
+  const checkTokenAccount = async (walletPublicKey: PublicKey, mintAddressString: string) => {
+    const mintAddress = new PublicKey(mintAddressString);
+
+    // Calculate the associated token account address
+    const associatedTokenAddress = await getAssociatedTokenAddress(mintAddress, walletPublicKey);
+
+    const accountInfo = await connection?.getAccountInfo(associatedTokenAddress);
+
+    return {
+      address: associatedTokenAddress,
+      isAccountPresent: accountInfo !== null,
+    };
+  };
+
   const fetchSolBalance = async () => {
     if (publicKey != null && connection != null) {
       await connection.getBalance(publicKey).then(lamports => {
         const sol = lamports / LAMPORTS_PER_SOL; // Convert lamports to SOL
-        setSolBalance(sol);
+        app.setSol(sol);
       });
     }
   };
@@ -48,6 +67,75 @@ export const useWalletInteraction = () => {
 
     return estimatedFee;
   };
+
+  async function transferSPLToken(
+    recipientPublicKeyString: string,
+    mintAddressString: string,
+    amount: number,
+  ) {
+    setIsLoading(true);
+    if (amount === 0) {
+      alert('Amount should be greater than 0');
+      return;
+    }
+
+    if (publicKey == null || connection == null) {
+      console.log('Wallet not connected');
+      return;
+    }
+
+    const recipientPublicKey = new PublicKey(recipientPublicKeyString);
+
+    // Check if the recipient's/sender associated token account exists before transferring
+    const recipientTokenAccount = await checkTokenAccount(recipientPublicKey, mintAddressString);
+    const senderTokenAccount = await checkTokenAccount(publicKey, mintAddressString);
+
+    if (!recipientTokenAccount.isAccountPresent) {
+      alert("Recipient's does not have associated token account, can't transfer");
+      return;
+    }
+
+    if (!senderTokenAccount.isAccountPresent) {
+      alert("sender's does not have associated token account, can't transfer");
+      return;
+    }
+
+    const transferInstruction = createTransferInstruction(
+      senderTokenAccount.address,
+      recipientTokenAccount.address,
+      publicKey,
+      amount,
+      [],
+      TOKEN_PROGRAM_ID,
+    );
+
+    const transaction = new Transaction().add(transferInstruction);
+
+    try {
+      // The wallet adapter's sendTransaction method signs and sends the transaction
+      const signature = await sendTransaction(transaction, connection);
+      const latestBlockHash = await connection.getLatestBlockhash();
+
+      const estimatedFee = await getEstimatedTxFee(transaction);
+      if (estimatedFee != null) {
+        console.log(`Estimated Transaction Fee: ${estimatedFee} lamports`);
+      }
+
+      const confirmedTx = await connection.confirmTransaction({
+        blockhash: latestBlockHash.blockhash,
+        lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+        signature,
+      });
+
+      console.error('transaction confirmed', confirmedTx);
+      alert('Success!');
+    } catch (error) {
+      alert(error);
+      console.error('Error sending token:', error);
+    }
+
+    setIsLoading(false);
+  }
 
   const sendSol = async (recipientPublicKeyString: string, amountSol: number) => {
     setIsLoading(true);
@@ -124,7 +212,7 @@ export const useWalletInteraction = () => {
       });
 
       const data = await Promise.all(tokenPromises);
-      setTokens(data);
+      app.setTokens(data);
     } catch (error) {
       console.error('Error fetching token balances:', error);
       // Handle the error, e.g., update the UI to show an error message
@@ -141,6 +229,7 @@ export const useWalletInteraction = () => {
     }
     setIsLoading(false);
   };
+
   useEffect(() => {
     if (connection != null) {
       fetchBalance();
@@ -151,10 +240,11 @@ export const useWalletInteraction = () => {
 
   return {
     fetchBalance,
-    solBalance,
+    solBalance: app.sol,
     connection,
-    tokens,
+    tokens: app.tokens,
     sendSol,
+    transferSPLToken,
     isLoading,
   };
 };

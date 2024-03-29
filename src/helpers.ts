@@ -2,20 +2,15 @@
 const tokenListUrl =
   'https://raw.githubusercontent.com/solana-labs/token-list/main/src/tokens/solana.tokenlist.json';
 
-interface ITokenListItem {
-  chainId: number;
-  address: string;
-  symbol: string;
-  name: string;
-  decimals: number;
-  logoURI: string;
-  tags: string[];
-}
+export const fetchTokens = async () => {
+  const response = await fetch(tokenListUrl);
+  const data = (await response.json()) as { tokens: ITokenListItem[] };
+  return data.tokens;
+};
 
 // Function to fetch the token list and find a token by mint address
 export const getTokenMetadata = async (mintAddress: string) => {
-  const response = await fetch(tokenListUrl);
-  const { tokens } = (await response.json()) as { tokens: ITokenListItem[] };
+  const tokens = await fetchTokens();
 
   // Find the token in the list
   const tokenMetadata = tokens.find(token => token.address === mintAddress);
