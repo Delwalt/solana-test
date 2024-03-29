@@ -1,5 +1,6 @@
-import { useState, createContext } from 'react';
+import { useState, createContext, useEffect } from 'react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import * as buffer from 'buffer';
 
 import { WalletWrapper } from './WalletWrapper';
 import { WalletUi } from './WalletUi';
@@ -25,6 +26,12 @@ export const AppContext = createContext<AppCtx>({
 });
 
 const App = () => {
+  // hack to fix a bug related to buffer not defined
+  // see - https://solana.stackexchange.com/questions/212/uncaught-referenceerror-buffer-is-not-defined-using-phantom-wallet-solana-and
+  useEffect(() => {
+    window.Buffer = buffer.Buffer;
+  }, []);
+
   const [cluster, setCluster] = useState<Cluster>(WalletAdapterNetwork.Devnet);
   const [tokens, setTokens] = useState<IToken[] | []>([]);
   const [sol, setSol] = useState<number>(0);
