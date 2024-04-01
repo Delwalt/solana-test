@@ -7,7 +7,6 @@ import {
 
 import {
   Connection,
-  clusterApiUrl,
   PublicKey,
   Transaction,
   SystemProgram,
@@ -16,7 +15,7 @@ import {
 
 import { useContext, useEffect, useState } from 'react';
 import { AppContext } from './App';
-import { getTokenMetadata } from './helpers';
+import { getClusterUrl, getTokenMetadata } from './helpers';
 
 export const useWalletInteraction = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +25,7 @@ export const useWalletInteraction = () => {
 
   useEffect(() => {
     console.log(app.cluster);
-    const connection = new Connection(clusterApiUrl(app.cluster));
+    const connection = new Connection(getClusterUrl(app.cluster));
     setConnection(connection);
   }, [app.cluster]);
 

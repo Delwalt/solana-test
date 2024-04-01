@@ -1,3 +1,6 @@
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { clusterApiUrl } from '@solana/web3.js';
+
 // URL to the Solana token list
 const tokenListUrl =
   'https://raw.githubusercontent.com/solana-labs/token-list/main/src/tokens/solana.tokenlist.json';
@@ -31,4 +34,12 @@ export function formatAddress(address: string) {
     return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
   }
   return address;
+}
+
+export function getClusterUrl(cluster: Cluster) {
+  if (cluster === WalletAdapterNetwork.Mainnet) {
+    return 'https://solana-mainnet.core.chainstack.com/58125655a2da18dadf9f46a097b575bc';
+  }
+
+  return clusterApiUrl(cluster);
 }
