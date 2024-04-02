@@ -1,6 +1,7 @@
 import { useWalletInteraction } from './useWalletInteraction';
 import { Loader } from './Loader';
 import { TokenSelectDropdown } from './TokenSelectDropdown';
+import { ProgramRunner } from './ProgramRunner';
 
 export const TransactionForm = () => {
   const { sendSol, isLoading, transferSPLToken } = useWalletInteraction();
@@ -59,13 +60,15 @@ export const TransactionForm = () => {
           </div>
         </div>
 
-        <div>
+        <div className='flex flex-row justify-between'>
           <button
             type='submit'
-            className='flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+            className='text-white bg-gradient-to-br from-green-400 to-blue-600 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center '
           >
             Transfer
           </button>
+
+          <ProgramRunner />
         </div>
       </form>
     </>

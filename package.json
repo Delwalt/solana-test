@@ -6,6 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "bp": "cargo build-bpf --manifest-path=./program/Cargo.toml --bpf-out-dir=./program/dist",
+    "cp": "cargo clean --manifest-path=./program/Cargo.toml",
+    "dp": "solana program deploy ./program/dist/hello_rust.so",
+    "lp": "cross-env PROGRAM_ID=\"$npm_config_programId\" sh -c 'solana logs | grep \"$PROGRAM_ID invoke\" -A 3'",
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx,js --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write --no-error-on-unmatched-pattern src/**/*.{ts,tsx,js,cjs,css,md,json,scss,html} --config ./.prettierrc.json",
