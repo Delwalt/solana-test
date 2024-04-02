@@ -1,12 +1,6 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import programKeyJson from '../program/dist/hello_rust-keypair.json';
-import {
-  Keypair,
-  sendAndConfirmTransaction,
-  Transaction,
-  TransactionInstruction,
-  type PublicKey,
-} from '@solana/web3.js';
+import { Keypair, Transaction, TransactionInstruction, type PublicKey } from '@solana/web3.js';
 import { useContext, useState } from 'react';
 import { AppContext } from './App';
 
