@@ -12,8 +12,6 @@ import {
   SystemProgram,
   LAMPORTS_PER_SOL,
   Keypair,
-  TransactionMessage,
-  VersionedTransaction,
 } from '@solana/web3.js';
 
 import { useContext, useEffect, useState } from 'react';
@@ -264,55 +262,6 @@ export const useWalletInteraction = () => {
     }
   };
 
-  const tranferFunds2 = async (
-    senderPrivateKey: Uint8Array,
-    receiverPublicKey: string,
-    amount: number,
-  ) => {
-    try {
-      if (connection == null || publicKey == null) return;
-      const senderAccount = Keypair.fromSecretKey(senderPrivateKey);
-      const receiverPubKey = new PublicKey(receiverPublicKey);
-
-      console.log('transfering amount:', amount);
-
-      const transferToReceiverAccount = SystemProgram.transfer({
-        lamports: amount,
-        // `fromPubkey` - from MUST sign the transaction
-        fromPubkey: senderAccount.publicKey,
-        // `toPubkey` - does NOT have to sign the transaction
-        toPubkey: receiverPubKey,
-        programId: SystemProgram.programId,
-      });
-
-      console.log('transferToReceiverAccount instructions:', transferToReceiverAccount);
-
-      const recentBlockhash = await connection.getLatestBlockhash().then(res => res.blockhash);
-
-      // create a transaction message
-      const message = new TransactionMessage({
-        payerKey: receiverPubKey,
-        recentBlockhash,
-        instructions: [
-          // transfer lamports to the receiver wallet
-          transferToReceiverAccount,
-        ],
-      }).compileToV0Message();
-
-      // create a versioned transaction using the message
-      const tx = new VersionedTransaction(message);
-
-      console.log('tx before signing:', tx);
-
-      const signature = await sendTransaction(tx, connection);
-
-      console.error('transaction confirmed', signature);
-      alert('Success!');
-    } catch (error) {
-      alert(error);
-    }
-  };
-
   const tranferFunds = async (
     senderPrivateKeys: Uint8Array[],
     receiverPublicKey: string,
@@ -356,6 +305,8 @@ export const useWalletInteraction = () => {
       });
       console.log('transaction complete successfully!', confirmedTx);
       alert('Success!');
+
+      return signature;
     } catch (error) {
       console.log('err', error);
       alert(error);
