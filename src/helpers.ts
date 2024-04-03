@@ -1,3 +1,4 @@
+import bs58 from 'bs58';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { clusterApiUrl } from '@solana/web3.js';
 
@@ -42,4 +43,10 @@ export function getClusterUrl(cluster: Cluster) {
   }
 
   return clusterApiUrl(cluster);
+}
+
+export function convertBase58KeyToUnit8Array(privateKeyBase58: string) {
+  const buffer = Buffer.from(bs58.decode(privateKeyBase58));
+
+  return new Uint8Array(buffer);
 }

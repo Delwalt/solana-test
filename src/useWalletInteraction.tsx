@@ -11,6 +11,9 @@ import {
   Transaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
+  Keypair,
+  TransactionMessage,
+  VersionedTransaction,
 } from '@solana/web3.js';
 
 import { useContext, useEffect, useState } from 'react';
@@ -24,7 +27,6 @@ export const useWalletInteraction = () => {
   const app = useContext(AppContext);
 
   useEffect(() => {
-    console.log(app.cluster);
     const connection = new Connection(getClusterUrl(app.cluster));
     setConnection(connection);
   }, [app.cluster]);
@@ -109,7 +111,6 @@ export const useWalletInteraction = () => {
       return;
     }
 
-    console.log({ amountInSmallestUnit });
     const transferInstruction = createTransferInstruction(
       senderTokenAccount.address,
       recipientTokenAccount.address,
@@ -240,13 +241,132 @@ export const useWalletInteraction = () => {
     setIsLoading(false);
   };
 
+  const getBalanceFromPrivateKey = async (privateKey: Uint8Array) => {
+    console.log({ privateKey });
+    if (connection == null) return;
+    try {
+      const keypair = Keypair.fromSecretKey(privateKey);
+      const balance = await connection.getBalance(keypair.publicKey);
+      return { balance, pubKey: keypair.publicKey.toString(), privateKey: keypair.secretKey };
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getBalanceFromPublicKey = async (publicKeyString: string) => {
+    if (connection == null) return;
+    try {
+      const publicKey = new PublicKey(publicKeyString);
+      const balance = await connection.getBalance(publicKey);
+      return { balance, pubKey: publicKey.toString() };
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const tranferFunds2 = async (
+    senderPrivateKey: Uint8Array,
+    receiverPublicKey: string,
+    amount: number,
+  ) => {
+    try {
+      if (connection == null || publicKey == null) return;
+      const senderAccount = Keypair.fromSecretKey(senderPrivateKey);
+      const receiverPubKey = new PublicKey(receiverPublicKey);
+
+      console.log('transfering amount:', amount);
+
+      const transferToReceiverAccount = SystemProgram.transfer({
+        lamports: amount,
+        // `fromPubkey` - from MUST sign the transaction
+        fromPubkey: senderAccount.publicKey,
+        // `toPubkey` - does NOT have to sign the transaction
+        toPubkey: receiverPubKey,
+        programId: SystemProgram.programId,
+      });
+
+      console.log('transferToReceiverAccount instructions:', transferToReceiverAccount);
+
+      const recentBlockhash = await connection.getLatestBlockhash().then(res => res.blockhash);
+
+      // create a transaction message
+      const message = new TransactionMessage({
+        payerKey: receiverPubKey,
+        recentBlockhash,
+        instructions: [
+          // transfer lamports to the receiver wallet
+          transferToReceiverAccount,
+        ],
+      }).compileToV0Message();
+
+      // create a versioned transaction using the message
+      const tx = new VersionedTransaction(message);
+
+      console.log('tx before signing:', tx);
+
+      const signature = await sendTransaction(tx, connection);
+
+      console.error('transaction confirmed', signature);
+      alert('Success!');
+    } catch (error) {
+      alert(error);
+    }
+  };
+
+  const tranferFunds = async (
+    senderPrivateKeys: Uint8Array[],
+    receiverPublicKey: string,
+    amount: number,
+  ) => {
+    try {
+      if (connection == null || publicKey == null) return;
+
+      const receiverPubKey = new PublicKey(receiverPublicKey);
+      const latestBlockHash = await connection.getLatestBlockhash();
+      const transaction = new Transaction();
+      const senderAccounts: Keypair[] = [];
+
+      // adding tx instruction for each sender account
+      senderPrivateKeys.forEach(privateKey => {
+        const senderAccount = Keypair.fromSecretKey(privateKey);
+        senderAccounts.push(senderAccount);
+        transaction.add(
+          SystemProgram.transfer({
+            fromPubkey: senderAccount.publicKey,
+            toPubkey: receiverPubKey,
+            lamports: amount,
+          }),
+        );
+      });
+
+      transaction.recentBlockhash = latestBlockHash.blockhash;
+      transaction.feePayer = publicKey;
+
+      console.log('signing tx for following sender accounts', senderAccounts);
+
+      transaction.partialSign(...senderAccounts);
+      console.log('sending tx instruction to wallet to sign', transaction);
+      const signature = await sendTransaction(transaction, connection);
+      console.log('signature received from wallet', signature);
+
+      const confirmedTx = await connection.confirmTransaction({
+        blockhash: latestBlockHash.blockhash,
+        lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+        signature,
+      });
+      console.log('transaction complete successfully!', confirmedTx);
+      alert('Success!');
+    } catch (error) {
+      console.log('err', error);
+      alert(error);
+    }
+  };
+
   useEffect(() => {
     if (connection != null) {
       fetchBalance();
     }
   }, [connection, publicKey]);
-
-  console.log({ isLoading });
 
   return {
     fetchBalance,
@@ -256,5 +376,8 @@ export const useWalletInteraction = () => {
     sendSol,
     transferSPLToken,
     isLoading,
+    getBalanceFromPrivateKey,
+    tranferFunds,
+    getBalanceFromPublicKey,
   };
 };

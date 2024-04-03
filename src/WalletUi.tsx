@@ -6,8 +6,6 @@ export const WalletUi = () => {
   const { solBalance, tokens, fetchBalance, isLoading } = useWalletInteraction();
   const { wallet } = useWallet();
 
-  console.log({ solBalance, wallet });
-
   if (wallet == null) {
     return <div className=' block h-40 flex justify-center items-center'> Connect a wallet</div>;
   }
@@ -20,19 +18,21 @@ export const WalletUi = () => {
             <Loader />
           </div>
         )}
-        <p className='text-center my-4 '>
-          <h3 className='text-5xl'>{solBalance}</h3>
+        <div className='text-center my-4 '>
+          <div className='text-5xl'>{solBalance}</div>
           <small className='text-lg '>SOL</small>
-        </p>
+        </div>
 
         <p className='mb-2 font-bold'>Other SPL tokens</p>
         <table>
-          {tokens.map(token => (
-            <tr key={token.symbol}>
-              <td style={{ border: '1px solid #ccc' }}>{`${token.name} (${token.symbol})`}</td>{' '}
-              <td style={{ border: '1px solid #ccc' }}>{token.balance}</td>
-            </tr>
-          ))}
+          <tbody>
+            {tokens.map(token => (
+              <tr key={token.symbol}>
+                <td style={{ border: '1px solid #ccc' }}>{`${token.name} (${token.symbol})`}</td>
+                <td style={{ border: '1px solid #ccc' }}>{token.balance}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
 
         <button
