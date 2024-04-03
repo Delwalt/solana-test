@@ -32,7 +32,7 @@ export const DustTransferForm = () => {
     const privateKeysArray = value.split('\n').filter(key => Boolean(key));
     const privateKeysUnit8 = privateKeysArray.map(convertBase58KeyToUnit8Array);
     const balancePromises = privateKeysUnit8.map(getBalanceFromPrivateKey);
-    const accounts = await Promise.all(balancePromises).catch(errors => console.log(errors));
+    const accounts = await Promise.all(balancePromises);
     setSenderAccounts(accounts);
   };
 
@@ -43,10 +43,10 @@ export const DustTransferForm = () => {
 
   const fetchBalance = async () => {
     setIsProcessing(true);
-    if (senderInput) {
+    if (senderInput !== '') {
       await getSenderBalance(senderInput);
     }
-    if (receiverInput) {
+    if (receiverInput !== '') {
       await getReceiverBalance(receiverInput);
     }
     setIsProcessing(false);
@@ -168,7 +168,7 @@ export const DustTransferForm = () => {
               >
                 Transfer Dust ({amountToTransfer} lamps)
               </button>
-              {latestTxSign ? (
+              {latestTxSign !== '' ? (
                 <a
                   target='_blank'
                   title={latestTxSign}
@@ -221,7 +221,7 @@ export const DustTransferForm = () => {
                       scope='row'
                       className='px-6 py-4 font-medium text-gray-900 whitespace-nowrap'
                     >
-                      {receiverAccounts?.pubKey
+                      {receiverAccounts?.pubKey !== undefined
                         ? formatAddress(receiverAccounts.pubKey)
                         : 'Invalid Public Key '}
                     </th>
@@ -255,7 +255,9 @@ export const DustTransferForm = () => {
                         scope='row'
                         className='px-6 py-4 font-medium text-gray-900 whitespace-nowrap'
                       >
-                        {account?.pubKey ? formatAddress(account.pubKey) : 'Invalid Public Key'}
+                        {account?.pubKey !== undefined
+                          ? formatAddress(account.pubKey)
+                          : 'Invalid Public Key'}
                       </th>
                       <td className='px-6 py-4'>
                         {account?.balance === undefined ? 'Invalid Public Key' : account.balance}
