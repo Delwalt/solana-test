@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { convertBase58KeyToUnit8Array, formatAddress } from './helpers';
 import { useWalletInteraction } from './useWalletInteraction';
 
 import { Loader } from './Loader';
+import { AppContext } from './App';
+
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 export const DustTransferForm = () => {
+  const app = useContext(AppContext);
+  const [latestTxSign, setLatestTxSign] = useState('');
   const [isFullAmount, setIsFullAmount] = useState(false);
   const [customAmount, setCustomAmount] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -71,11 +75,13 @@ export const DustTransferForm = () => {
     const senderAccountPrivateKeys = validSenderAccounts.map(account => account?.privateKey);
 
     if (senderAccounts[0] != null) {
-      await tranferFunds(
+      const sign = await tranferFunds(
         senderAccountPrivateKeys as Uint8Array[],
         receiverPubKey,
         amountToTransfer,
       );
+
+      if (sign !== undefined) setLatestTxSign(sign);
     }
 
     setIsProcessing(false);
@@ -162,6 +168,34 @@ export const DustTransferForm = () => {
               >
                 Transfer Dust ({amountToTransfer} lamps)
               </button>
+              {latestTxSign ? (
+                <a
+                  target='_blank'
+                  title={latestTxSign}
+                  href={`https://explorer.solana.com/tx/${latestTxSign}?cluster=${app.cluster}`}
+                  className='inline-flex items-center font-medium text-sm text-blue-600 dark:text-blue-500 hover:underline mt-2'
+                  rel='noreferrer'
+                >
+                  Check Log
+                  <svg
+                    className='w-4 h-4 ms-2 rtl:rotate-180'
+                    aria-hidden='true'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 14 10'
+                  >
+                    <path
+                      stroke='currentColor'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth='2'
+                      d='M1 5h12m0 0L9 1m4 4L9 9'
+                    />
+                  </svg>
+                </a>
+              ) : (
+                ''
+              )}
             </div>
           </form>
         </div>
