@@ -171,12 +171,15 @@ export const DustTransferForm = () => {
               >
                 Transfer Dust ({amountToTransfer} lamps)
               </button>
+            </div>
+
+            <div className='!mt-2'>
               {latestTxSign !== '' ? (
                 <a
                   target='_blank'
                   title={latestTxSign}
                   href={`https://explorer.solana.com/tx/${latestTxSign}?cluster=${app.cluster}`}
-                  className='inline-flex items-center font-medium text-sm text-blue-600 dark:text-blue-500 hover:underline mt-2'
+                  className='float-right inline-flex items-center font-medium text-sm text-blue-600 dark:text-blue-500 hover:underline'
                   rel='noreferrer'
                 >
                   Check Log
